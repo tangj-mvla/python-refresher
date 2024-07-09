@@ -20,3 +20,9 @@ class Bank:
 
     def get_balance(self):
         return self.balance
+
+    def get_name(self):
+        return self.name
+
+    def get_number(self):
+        return self.number
