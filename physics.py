@@ -8,8 +8,8 @@ def calculate_buoyancy(V, density_fluid):
     V: Volume of object in cubic meters
     density_fluid: density of fluid in kg/m^3
     '''
-    if (V <= 0): return "Volume Error"
-    if (density_fluid <= 0): return "Density Error"
+    if (V <= 0): raise ValueError("Volume Error")
+    if (density_fluid <= 0):  raise ValueError("Density Error")
     return density_fluid * V * 9.81
 
 def will_it_float(V, mass):
@@ -19,8 +19,8 @@ def will_it_float(V, mass):
     V: the volume of the object in cubic meters
     mass: the mass of the object in kilograms
     '''
-    if (V <= 0): return "Volume Error"
-    if (mass <= 0): return "Mass Error"
+    if (V <= 0): raise ValueError("Volume Error")
+    if (mass <= 0): raise ValueError("Mass Error")
     return mass/V < 1000
 
 def calculate_pressure(depth):
@@ -29,7 +29,7 @@ def calculate_pressure(depth):
 
     depth: the depth in meters
     '''
-    if (depth < 0): return "Depth Error"
+    if (depth < 0): raise ValueError("Depth Error")
     return depth * 9.81 * 1000
 
 def calculate_acceleration(F, m):
@@ -39,7 +39,7 @@ def calculate_acceleration(F, m):
     F: the force applied to the object in Newtons
     m: the mass of the object in kilograms
     '''
-    if (m <= 0): return "Mass Error"
+    if (m <= 0): raise ValueError("Mass Error")
     return F/m
 
 def calculate_angular_acceleration(tau, I):
@@ -49,7 +49,7 @@ def calculate_angular_acceleration(tau, I):
     tau: the torque applied to the object in Newton-meters
     I: the moment of inertia of the object in kg * m^2
     '''
-    if (I <= 0): return "Inertia Error"
+    if (I <= 0): raise ValueError("Inertia Error")
     return tau/I
 
 def calculate_torque(F_magnitude, F_direction, r):
@@ -83,8 +83,9 @@ def calculate_auv_acceleration(F_magnitude, F_angle, mass = 100, volume = 0.1, t
     volume: the volume of the AUV in cubic meters. The default value is 0.1 m^3
     thruster_distance: the distance from the center of mass of the AUV to the thruster in meters. The default value is 0.5 m
     '''
-    force = F_magnitude * math.cos(math.radians(F_angle))
-    return calculate_acceleration(force, mass)
+    acceleration = np.array(math.cos(math.radians(F_angle)),math.sin(math.radians(F_angle)))
+    acceleration = acceleration * F_magnitude/mass
+    return acceleration
 
 def calculate_auv_angular_acceleration(F_magnitude, F_angle, inertia = 1, thruster_distance = 0.5):
     '''
@@ -107,10 +108,10 @@ def calculate_auv2_acceleration(T, alpha, theta, mass = 100):
     theta: the angle of the AUV in radians
     mass: the mass of the AUV in kilograms. The default value is 100 kg
     '''
-    a1 = calculate_acceleration(T[0],alpha,mass)
-    a2 = calculate_acceleration(T[1],alpha,mass)
-    a3 = calculate_acceleration(T[2],alpha,mass)
-    a4 = calculate_acceleration(T[3],alpha,mass)
+    a1 = calculate_auv_acceleration(T[0],alpha,mass)
+    a2 = calculate_auv_acceleration(T[1],alpha,mass)
+    a3 = calculate_auv_acceleration(T[2],alpha,mass)
+    a4 = calculate_auv_acceleration(T[3],alpha,mass)
     return a1 + a2 - a3 - a4
 
 def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia = 100):
