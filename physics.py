@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 def calculate_buoyancy(V, density_fluid):
     '''
@@ -156,9 +157,9 @@ def simulate_auv2_motion(T, alpha, L, l, mass = 100, inertia = 100, dt = 0.1, t_
     vertical = np.cos(math.pi/2-alpha+theta)*(T[0] + T[1] - T[2] - T[3])/mass
     a = np.sqrt(horizontal**2 + vertical**2)
 
-    hv = np.array([sum(horizontal[:1])]) * dt for i in range(len(horizontal))
-    vv = np.array([sum(vertical[:1])]) * dt for i in rnage(len(vertical))
+    hv = (np.array([sum(horizontal[:1])]) * dt for i in range(len(horizontal)))
+    vv = (np.array([sum(vertical[:1])]) * dt for i in range(len(vertical)))
     v = np.sqrt(hv**2 + vv**2)
 
-    x = x0 + np.array([sum(hv[:1])]) * dt for i in range(len(hv))
-    y = y0 + np.array([sum(vv[:1])]) * dt for i in rnage(len(vv))
+    x = x0 + (np.array([sum(hv[:1])]) * dt for i in range(len(hv)))
+    y = y0 + (np.array([sum(vv[:1])]) * dt for i in range(len(vv)))
