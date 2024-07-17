@@ -96,8 +96,9 @@ def calculate_auv_angular_acceleration(F_magnitude, F_angle, inertia = 1, thrust
     inertia: the moment of inertia of the AUV in kg * m^3. Default is 1 kg * m^3
     thruster_distance: the distance from the center of mass of the AUV to the thruster in meters. The default value is 0.5 m
     '''
-    tau = calculate_torque(F_magnitude, F_angle, thruster_distance)
-    return calculate_angular_acceleration(tau, inertia)
+    angular_acceleration = F_magnitude * np.sin(np.radians(F_angle)) * thruster_distance/inertia
+
+    return angular_acceleration
 
 def calculate_auv2_acceleration(T, alpha, theta, mass = 100):
     '''
@@ -108,11 +109,17 @@ def calculate_auv2_acceleration(T, alpha, theta, mass = 100):
     theta: the angle of the AUV in radians
     mass: the mass of the AUV in kilograms. The default value is 100 kg
     '''
-    a1 = calculate_auv_acceleration(T[0],alpha,mass)
-    a2 = calculate_auv_acceleration(T[1],alpha,mass)
-    a3 = calculate_auv_acceleration(T[2],alpha,mass)
-    a4 = calculate_auv_acceleration(T[3],alpha,mass)
-    return a1 + a2 - a3 - a4
+    # a1 = calculate_auv_acceleration(T[0],alpha,mass)
+    # a2 = calculate_auv_acceleration(T[1],alpha,mass)
+    # a3 = calculate_auv_acceleration(T[2],alpha,mass)
+    # a4 = calculate_auv_acceleration(T[3],alpha,mass)
+    # return a1 + a2 - a3 - a4
+    alpha = np.radians(alpha)
+    ax = T[0]*np.cos(alpha) + T[1]*np.cos(alpha) - T[2]*np.cos(alpha) - T[3]*np.cos(alpha)
+    ay = T[0]*np.sin(alpha) - T[1]*np.sin(alpha) + T[2]*np.sin(alpha) - T[3]*np.sin(alpha)
+    acceleration = np.array(ax,ay)/mass
+    acceleration.rotate(theta)
+    return acceleration
 
 def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia = 100):
     '''
@@ -125,11 +132,9 @@ def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia = 100):
     inertia: the moment of inertia of the AUV in kg * m^3. The default value is 100 kg * m^3
     '''
     distance = np.sqrt(L**2, l**2)
-    t1 = distance * T[0] * np.sin(alpha)
-    t2 = distance * T[1] * np.sin(alpha)
-    t3 = distance * T[2] * np.sin(alpha)
-    t4 = distance * T[3] * np.sin(alpha)
-    return (t1 + t3 - t2 -t4)/inertia
+    angular_acceleration = np.array(T[0],-T[1],T[2],-T[3])
+    angular_acceleration = angular_acceleration * distance * np.sin(np.radians(alpha))/inertia
+    return angular_acceleration
     
 def simulate_auv2_motion(T, alpha, L, l, mass = 100, inertia = 100, dt = 0.1, t_final = 10, x0 = 0, y0 = 0, theta0 = 0):
     '''
@@ -147,20 +152,35 @@ def simulate_auv2_motion(T, alpha, L, l, mass = 100, inertia = 100, dt = 0.1, t_
     y0: the initial y-position of the AUV in meters. The default value is 0 m
     theta0: the initial angle of the AUV in radians. The default value is 0 rad
     '''
-    alpha = math.pi/180 * alpha
+    # alpha = math.pi/180 * alpha
+    # t = np.arange(0,t_final+dt,dt)
+    # moment_arm = np.sqrt(l**2+L**2)
+    # net_torque = moment_arm*np.sin(alpha)*(T[0]+T[2]-T[1]-T[3])
+    # theta = t**2 + 1/2 * net_torque/inertia + theta0
+    # print (theta)
+
+    # horizontal = np.sin(math.pi/2-alpha+theta)*(T[0] + T[1] - T[2] - T[3])/mass
+    # vertical = np.cos(math.pi/2-alpha+theta)*(T[0] + T[1] - T[2] - T[3])/mass
+    # a = np.sqrt(horizontal**2 + vertical**2)
+
+    # hv = (np.array([sum(horizontal[:1])]) * dt for i in range(len(horizontal)))
+    # vv = (np.array([sum(vertical[:1])]) * dt for i in range(len(vertical)))
+    # v = np.sqrt(hv**2 + vv**2)
+
+    # x = x0 + (np.array([sum(hv[:1])]) * dt for i in range(len(hv)))
+    # y = y0 + (np.array([sum(vv[:1])]) * dt for i in range(len(vv)))
+
+    alpha = np.radians(alpha)
+    intervals = t_final/dt + 1
     t = np.arange(0,t_final+dt,dt)
-    moment_arm = np.sqrt(l**2+L**2)
-    net_torque = moment_arm*np.sin(alpha)*(T[0]+T[2]-T[1]-T[3])
-    theta = t**2 + 1/2 * net_torque/inertia + theta0
-    print (theta)
 
-    horizontal = np.sin(math.pi/2-alpha+theta)*(T[0] + T[1] - T[2] - T[3])/mass
-    vertical = np.cos(math.pi/2-alpha+theta)*(T[0] + T[1] - T[2] - T[3])/mass
-    a = np.sqrt(horizontal**2 + vertical**2)
+    thruster_distance = np.sqrt(l**2 + L**2)
+    x = np.zeros(intervals)
+    y = np.zeros(intervals)
+    theta = np.zeros(intervals)
+    v = np.zeros(intervals)
+    omega = np.zeros(intervals)
+    a = np.zeros(intervals)
 
-    hv = (np.array([sum(horizontal[:1])]) * dt for i in range(len(horizontal)))
-    vv = (np.array([sum(vertical[:1])]) * dt for i in range(len(vertical)))
-    v = np.sqrt(hv**2 + vv**2)
-
-    x = x0 + (np.array([sum(hv[:1])]) * dt for i in range(len(hv)))
-    y = y0 + (np.array([sum(vv[:1])]) * dt for i in range(len(vv)))
+    for i in range(intervals):
+        continue
