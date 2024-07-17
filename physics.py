@@ -115,8 +115,6 @@ def calculate_auv2_acceleration(T, alpha, theta, mass = 100):
     # a3 = calculate_auv_acceleration(T[2],alpha,mass)
     # a4 = calculate_auv_acceleration(T[3],alpha,mass)
     # return a1 + a2 - a3 - a4
-    alpha = np.radians(alpha)
-    theta = np.radians(theta)
     ax = T[0]*np.cos(alpha) + T[1]*np.cos(alpha) - T[2]*np.cos(alpha) - T[3]*np.cos(alpha)
     ay = T[0]*np.sin(alpha) - T[1]*np.sin(alpha) + T[2]*np.sin(alpha) - T[3]*np.sin(alpha)
     acceleration = np.array(ax,ay)/mass
@@ -136,7 +134,7 @@ def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia = 100):
     '''
     distance = np.sqrt(L**2, l**2)
     angular_acceleration = T[0]-T[1]+T[2]-T[3]
-    angular_acceleration = angular_acceleration * distance * np.sin(np.radians(alpha))/inertia
+    angular_acceleration = angular_acceleration * distance * np.sin(alpha)/inertia
 
     return angular_acceleration
     
@@ -174,7 +172,7 @@ def simulate_auv2_motion(T, alpha, L, l, mass = 100, inertia = 100, dt = 0.1, t_
     # x = x0 + (np.array([sum(hv[:1])]) * dt for i in range(len(hv)))
     # y = y0 + (np.array([sum(vv[:1])]) * dt for i in range(len(vv)))
 
-    alpha_radians = np.radians(alpha)
+    # alpha_radians = np.radians(alpha)
     theta_degrees = theta0
     intervals = t_final/dt + 1
     t = np.arange(0,t_final+dt,dt)
