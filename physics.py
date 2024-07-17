@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 
 def calculate_buoyancy(V, density_fluid):
     '''
@@ -115,10 +116,12 @@ def calculate_auv2_acceleration(T, alpha, theta, mass = 100):
     # a4 = calculate_auv_acceleration(T[3],alpha,mass)
     # return a1 + a2 - a3 - a4
     alpha = np.radians(alpha)
+    theta = np.radians(theta)
     ax = T[0]*np.cos(alpha) + T[1]*np.cos(alpha) - T[2]*np.cos(alpha) - T[3]*np.cos(alpha)
     ay = T[0]*np.sin(alpha) - T[1]*np.sin(alpha) + T[2]*np.sin(alpha) - T[3]*np.sin(alpha)
     acceleration = np.array(ax,ay)/mass
-    acceleration.rotate(theta)
+    rotation_matrix = np.ndarray([[np.cos(theta),-np.sin(theta)],[np.sin(theta),np.cos(theta)]])
+    acceleration = np.dot(rotation_matrix,acceleration)
     return acceleration
 
 def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia = 100):
@@ -132,8 +135,9 @@ def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia = 100):
     inertia: the moment of inertia of the AUV in kg * m^3. The default value is 100 kg * m^3
     '''
     distance = np.sqrt(L**2, l**2)
-    angular_acceleration = np.array(T[0],-T[1],T[2],-T[3])
+    angular_acceleration = T[0]-T[1]+T[2]-T[3]
     angular_acceleration = angular_acceleration * distance * np.sin(np.radians(alpha))/inertia
+
     return angular_acceleration
     
 def simulate_auv2_motion(T, alpha, L, l, mass = 100, inertia = 100, dt = 0.1, t_final = 10, x0 = 0, y0 = 0, theta0 = 0):
@@ -170,7 +174,8 @@ def simulate_auv2_motion(T, alpha, L, l, mass = 100, inertia = 100, dt = 0.1, t_
     # x = x0 + (np.array([sum(hv[:1])]) * dt for i in range(len(hv)))
     # y = y0 + (np.array([sum(vv[:1])]) * dt for i in range(len(vv)))
 
-    alpha = np.radians(alpha)
+    alpha_radians = np.radians(alpha)
+    theta_degrees = theta0
     intervals = t_final/dt + 1
     t = np.arange(0,t_final+dt,dt)
 
@@ -181,6 +186,24 @@ def simulate_auv2_motion(T, alpha, L, l, mass = 100, inertia = 100, dt = 0.1, t_
     v = np.zeros(intervals)
     omega = np.zeros(intervals)
     a = np.zeros(intervals)
+    x[0], y[0], theta[0], v[0], omega[0], a[0] = x0,y0,theta0,0,0,0
+    for i in range(1,intervals+1):
+        a[i] = a[i-1] + calculate_auv2_acceleration(T,alpha,theta_degrees,mass)
+        v[i] = v[i-1] + a[i]*dt
+        x[i] = x[i-1] + v[i][0]*dt
+        y[i] = y[i-1] + v[i][1]*dt
 
-    for i in range(intervals):
-        continue
+        angular_acceleration = calculate_auv2_angular_acceleration(T,alpha,L,l,inertia)
+        omega[i] = omega[i-1] + angular_acceleration*dt
+        theta[i] = theta[i-1] + omega[i]*dt
+
+    return t,x,y,theta,v,omega,a
+
+def plot_auv2_motion(t,x,y,theta,v,omega,a):
+    plt.plot(t,x, label = 'x')
+    plt.plot(t,y, label = 'y')
+    plt.plot(t,theta, label = 'theta')
+    plt.plot(t,v, label = 'v')
+    plt.plot(t,omega, label = 'omega')
+    plt.plot(t,a, label = 'a')
+
